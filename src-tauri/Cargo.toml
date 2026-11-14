@@ -1,0 +1,29 @@
+[package]
+name = "fret_tab_runner"
+version = "1.0.0"
+description = "Interactive side-scrolling tablature & fretboard runner engine"
+authors = ["Code Journey Software"]
+edition = "2024"
+
+[lib]
+name = "fret_tab_runner_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-opener = "2"
+tauri-plugin-dialog = "2"
+tauri-plugin-fs = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+base64 = "0.22"
+
+[profile.release]
+codegen-units = 1
+lto = true
+opt-level = 3
+panic = "abort"
+strip = true
