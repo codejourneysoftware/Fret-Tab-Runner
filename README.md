@@ -2,8 +2,6 @@
 
 > **Cross-platform interactive side-scrolling tablature & fretboard runner engine built with Tauri + React + TypeScript + Vite.**
 
-Ported from [codejourneysoftware/fretstackrunner](https://github.com/codejourneysoftware/fretstackrunner).
-
 ## Features
 
 - **Side-Scrolling Tab Highway**: 60/120fps HTML5 Canvas note highway with color-coded strings, fret badges (`0–24`), sustain ribbon trails, technique annotations (`h`, `p`, `/`, `\`, `b`, `~`, `P.M.`, `(x)`), lyric/chord cues, and neon laser strike zone.
