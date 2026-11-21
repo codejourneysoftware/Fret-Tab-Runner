@@ -13,6 +13,10 @@ src-tauri/target
 release/
 src-desktop/bin
 src-desktop/obj
+*.exe
+*.dll
+*.pdb
+*.msi
 
 # Editor & OS
 .DS_Store
