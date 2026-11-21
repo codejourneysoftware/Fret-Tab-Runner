@@ -1,0 +1,182 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <!-- Background glow / badge -->
+    <radialGradient id="bgGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#1e293b"/>
+      <stop offset="100%" stop-color="#090d16"/>
+    </radialGradient>
+
+    <!-- Warm acoustic spruce / amber sunburst -->
+    <radialGradient id="guitarSunburst" cx="42%" cy="58%" r="65%">
+      <stop offset="0%" stop-color="#fde047"/>
+      <stop offset="40%" stop-color="#f59e0b"/>
+      <stop offset="75%" stop-color="#b45309"/>
+      <stop offset="100%" stop-color="#542307"/>
+    </radialGradient>
+
+    <!-- Neck wood -->
+    <linearGradient id="neckWood" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#92400e"/>
+      <stop offset="100%" stop-color="#451a03"/>
+    </linearGradient>
+
+    <!-- Fretboard -->
+    <linearGradient id="fretboard" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#33180c"/>
+      <stop offset="100%" stop-color="#1c0c05"/>
+    </linearGradient>
+
+    <!-- Pickguard tortoiseshell -->
+    <linearGradient id="pickguardGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#7c2d12"/>
+      <stop offset="100%" stop-color="#2a0c03"/>
+    </linearGradient>
+
+    <!-- Gold hardware -->
+    <linearGradient id="goldHw" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fef08a"/>
+      <stop offset="100%" stop-color="#ca8a04"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Circular container for universal tab contrast -->
+  <circle cx="32" cy="32" r="30" fill="url(#bgGlow)" stroke="#00e5ff" stroke-width="1.8" stroke-opacity="0.8"/>
+  <circle cx="32" cy="32" r="28.5" fill="none" stroke="#f59e0b" stroke-width="0.8" stroke-opacity="0.5"/>
+
+  <!-- Tilted Acoustic Guitar Group (~ -38 deg rotation centered at 32,32) -->
+  <g transform="rotate(-38 32 32)">
+    <!-- Headstock (Top) -->
+    <!-- Headstock base -->
+    <path d="M29.5 7 L34.5 7 L35.5 14 L28.5 14 Z" fill="url(#neckWood)" stroke="#3a1503" stroke-width="0.6"/>
+    <!-- Headstock decorative crown -->
+    <path d="M29.5 7 Q32 8.5 34.5 7 L34.8 6 Q32 7.2 29.2 6 Z" fill="url(#goldHw)"/>
+    <!-- Headstock inner cutout slots -->
+    <rect x="30" y="8" width="1.2" height="4.5" rx="0.5" fill="#1c0c05"/>
+    <rect x="32.8" y="8" width="1.2" height="4.5" rx="0.5" fill="#1c0c05"/>
+
+    <!-- Tuning Pegs (3 on left, 3 on right) -->
+    <!-- Left pegs -->
+    <circle cx="27.5" cy="8.5" r="1.1" fill="url(#goldHw)" stroke="#78350f" stroke-width="0.3"/>
+    <circle cx="27.5" cy="10.7" r="1.1" fill="url(#goldHw)" stroke="#78350f" stroke-width="0.3"/>
+    <circle cx="27.5" cy="12.9" r="1.1" fill="url(#goldHw)" stroke="#78350f" stroke-width="0.3"/>
+    <line x1="28.6" y1="8.5" x2="29.7" y2="8.5" stroke="url(#goldHw)" stroke-width="0.6"/>
+    <line x1="28.6" y1="10.7" x2="29.7" y2="10.7" stroke="url(#goldHw)" stroke-width="0.6"/>
+    <line x1="28.6" y1="12.9" x2="29.7" y2="12.9" stroke="url(#goldHw)" stroke-width="0.6"/>
+
+    <!-- Right pegs -->
+    <circle cx="36.5" cy="8.5" r="1.1" fill="url(#goldHw)" stroke="#78350f" stroke-width="0.3"/>
+    <circle cx="36.5" cy="10.7" r="1.1" fill="url(#goldHw)" stroke="#78350f" stroke-width="0.3"/>
+    <circle cx="36.5" cy="12.9" r="1.1" fill="url(#goldHw)" stroke="#78350f" stroke-width="0.3"/>
+    <line x1="34.3" y1="8.5" x2="35.4" y2="8.5" stroke="url(#goldHw)" stroke-width="0.6"/>
+    <line x1="34.3" y1="10.7" x2="35.4" y2="10.7" stroke="url(#goldHw)" stroke-width="0.6"/>
+    <line x1="34.3" y1="12.9" x2="35.4" y2="12.9" stroke="url(#goldHw)" stroke-width="0.6"/>
+
+    <!-- Nut -->
+    <rect x="29.3" y="14" width="5.4" height="0.8" rx="0.3" fill="#fef08a"/>
+
+    <!-- Neck & Fretboard -->
+    <rect x="29.6" y="14.8" width="4.8" height="15.2" fill="url(#fretboard)" stroke="#220e05" stroke-width="0.5"/>
+
+    <!-- Frets -->
+    <line x1="29.6" y1="17" x2="34.4" y2="17" stroke="#e2e8f0" stroke-width="0.3" opacity="0.7"/>
+    <line x1="29.6" y1="19.5" x2="34.4" y2="19.5" stroke="#e2e8f0" stroke-width="0.3" opacity="0.7"/>
+    <line x1="29.6" y1="22.2" x2="34.4" y2="22.2" stroke="#e2e8f0" stroke-width="0.3" opacity="0.7"/>
+    <line x1="29.6" y1="25.2" x2="34.4" y2="25.2" stroke="#e2e8f0" stroke-width="0.3" opacity="0.7"/>
+    <line x1="29.6" y1="28.4" x2="34.4" y2="28.4" stroke="#e2e8f0" stroke-width="0.3" opacity="0.7"/>
+
+    <!-- Fretboard position markers / inlay dots -->
+    <circle cx="32" cy="18.25" r="0.45" fill="#f8fafc"/>
+    <circle cx="32" cy="20.85" r="0.45" fill="#f8fafc"/>
+    <circle cx="32" cy="23.7" r="0.45" fill="#f8fafc"/>
+
+    <!-- Acoustic Guitar Body (Classic dreadnought figure-8) -->
+    <!--
+      Upper bout starts at y=28, reaches width x=25 to 39
+      Waist narrows at y=37, width x=27 to 37
+      Lower bout expands at y=46, width x=21 to 43
+      Bottom curve at y=56
+    -->
+    <path d="
+      M 32 28.5
+      C 30 28.5, 25 29.5, 24 33.5
+      C 23.2 36.8, 26 38.5, 26.5 40
+      C 27 41.5, 21.5 44.5, 21.5 49
+      C 21.5 54.5, 27 57, 32 57
+      C 37 57, 42.5 54.5, 42.5 49
+      C 42.5 44.5, 37 41.5, 37.5 40
+      C 38 38.5, 40.8 36.8, 40 33.5
+      C 39 29.5, 34 28.5, 32 28.5
+      Z"
+      fill="url(#guitarSunburst)"
+      stroke="#3b1704"
+      stroke-width="1.1"
+      stroke-linejoin="round"
+    />
+
+    <!-- Inner Purfling / Binding line -->
+    <path d="
+      M 32 29.8
+      C 30.3 29.8, 26 30.6, 25.1 33.8
+      C 24.5 36.6, 27 38.2, 27.5 39.8
+      C 28 41.4, 22.8 44.3, 22.8 48.6
+      C 22.8 53.5, 27.8 55.8, 32 55.8
+      C 36.2 55.8, 41.2 53.5, 41.2 48.6
+      C 41.2 44.3, 36 41.4, 36.5 39.8
+      C 37 38.2, 39.5 36.6, 38.9 33.8
+      C 38 30.6, 33.7 29.8, 32 29.8
+      Z"
+      fill="none"
+      stroke="#fde68a"
+      stroke-width="0.5"
+      stroke-opacity="0.8"
+    />
+
+    <!-- Acoustic Soundhole Rosette -->
+    <circle cx="32" cy="38" r="4.8" fill="none" stroke="#fef3c7" stroke-width="0.8"/>
+    <circle cx="32" cy="38" r="4.1" fill="none" stroke="#b45309" stroke-width="0.5"/>
+    <circle cx="32" cy="38" r="3.5" fill="#140803" stroke="#260f04" stroke-width="0.4"/>
+
+    <!-- Acoustic Teardrop Pickguard -->
+    <path d="
+      M 34.5 38
+      C 35 41, 37.5 41.5, 37 45
+      C 36.5 47, 33.5 45.5, 33.5 43
+      C 33.5 41, 34 39, 34.5 38
+      Z"
+      fill="url(#pickguardGrad)"
+      stroke="#451a03"
+      stroke-width="0.4"
+      opacity="0.9"
+    />
+
+    <!-- Wooden Bridge -->
+    <path d="M 28 49.2 L 36 49.2 C 36.5 49.2, 37 49.6, 36.8 50.4 L 36.4 51.5 C 36.2 52, 35.8 52.2, 35 52.2 L 29 52.2 C 28.2 52.2, 27.8 52, 27.6 51.5 L 27.2 50.4 C 27 49.6, 27.5 49.2, 28 49.2 Z"
+      fill="#291206"
+      stroke="#120601"
+      stroke-width="0.5"
+    />
+    <!-- Bone Saddle -->
+    <rect x="29" y="49.8" width="6" height="0.6" rx="0.2" fill="#fffbeb"/>
+    <!-- Bridge Pins -->
+    <circle cx="29.5" cy="51.2" r="0.35" fill="#fef08a"/>
+    <circle cx="30.5" cy="51.2" r="0.35" fill="#fef08a"/>
+    <circle cx="31.5" cy="51.2" r="0.35" fill="#fef08a"/>
+    <circle cx="32.5" cy="51.2" r="0.35" fill="#fef08a"/>
+    <circle cx="33.5" cy="51.2" r="0.35" fill="#fef08a"/>
+    <circle cx="34.5" cy="51.2" r="0.35" fill="#fef08a"/>
+
+    <!-- 6 Steel Acoustic Strings -->
+    <!-- E 6th (wound bronze) -->
+    <line x1="30.1" y1="14.8" x2="29.5" y2="49.8" stroke="#fcd34d" stroke-width="0.42" opacity="0.95"/>
+    <!-- A 5th -->
+    <line x1="30.9" y1="14.8" x2="30.5" y2="49.8" stroke="#fef08a" stroke-width="0.38" opacity="0.95"/>
+    <!-- D 4th -->
+    <line x1="31.6" y1="14.8" x2="31.5" y2="49.8" stroke="#ffffff" stroke-width="0.34" opacity="0.95"/>
+    <!-- G 3rd -->
+    <line x1="32.4" y1="14.8" x2="32.5" y2="49.8" stroke="#ffffff" stroke-width="0.3" opacity="0.95"/>
+    <!-- B 2nd -->
+    <line x1="33.1" y1="14.8" x2="33.5" y2="49.8" stroke="#ffffff" stroke-width="0.26" opacity="0.9"/>
+    <!-- e 1st (high steel) -->
+    <line x1="33.9" y1="14.8" x2="34.5" y2="49.8" stroke="#ffffff" stroke-width="0.22" opacity="0.9"/>
+  </g>
+</svg>
