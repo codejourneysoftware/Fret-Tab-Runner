@@ -23,3 +23,17 @@ src-desktop/obj
 Thumbs.db
 .vscode/*
 !.vscode/extensions.json
+
+# Internal deployment docs & secrets
+deploy.md
+deploy*.md
+*deploy*.md
+.env
+.env.*
+*.env
+*.pem
+*.key
+*.pfx
+secrets/
+*secret*
+*credential*
