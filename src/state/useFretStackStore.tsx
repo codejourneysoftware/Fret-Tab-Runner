@@ -169,9 +169,14 @@ export const FretStackProvider: React.FC<{ children: React.ReactNode }> = ({
   const [leadInBars] = useState<number>(1.5);
   const [pixelsPerBeat, setPixelsPerBeat] = useState<number>(110);
 
+  const isYouTubeSong =
+    song.audioSource.sourceType === "External Stream / YouTube Link";
   const leadInBeats = useMemo(
-    () => (isCountInEnabled ? leadInBars * beatsPerMeasure(song.timeSignature) : 0),
-    [isCountInEnabled, leadInBars, song.timeSignature]
+    () =>
+      !isYouTubeSong && isCountInEnabled
+        ? leadInBars * beatsPerMeasure(song.timeSignature)
+        : 0,
+    [isYouTubeSong, isCountInEnabled, leadInBars, song.timeSignature]
   );
   const startBeat = -leadInBeats;
 
@@ -326,15 +331,10 @@ export const FretStackProvider: React.FC<{ children: React.ReactNode }> = ({
       ) {
         const baseBpm = getEffectiveAudioBaseBpm(songRef.current);
         const offsetSec = songRef.current.audioSource.offsetMilliseconds / 1000.0;
-        const audioSec = (clamped / baseBpm) * 60.0 + offsetSec;
-        if (audioSec < 0) {
-          sharedYouTubeEngine.pause();
-          sharedYouTubeEngine.seek(0);
-        } else {
-          sharedYouTubeEngine.seek(audioSec);
-          if (isPlayingRef.current) {
-            sharedYouTubeEngine.play(audioSec);
-          }
+        const audioSec = Math.max(0, (clamped / baseBpm) * 60.0 + offsetSec);
+        sharedYouTubeEngine.seek(audioSec);
+        if (isPlayingRef.current) {
+          sharedYouTubeEngine.play(audioSec);
         }
       }
     },
@@ -352,25 +352,29 @@ export const FretStackProvider: React.FC<{ children: React.ReactNode }> = ({
     if (currentBeatRef.current >= total) {
       seek(startBeat);
     }
+
+    const isYT =
+      songRef.current.audioSource.sourceType === "External Stream / YouTube Link";
+
+    if (isYT && currentBeatRef.current < 0) {
+      currentBeatRef.current = 0;
+      setCurrentBeatState(0);
+    }
+
     playedNoteIdsRef.current.clear();
     lastMetronomeBeatRef.current = Math.floor(currentBeatRef.current) - 1;
     setIsPlaying(true);
     isPlayingRef.current = true;
     lastFrameTimeRef.current = performance.now();
 
-    if (
-      songRef.current.audioSource.sourceType === "External Stream / YouTube Link"
-    ) {
+    if (isYT) {
       const baseBpm = getEffectiveAudioBaseBpm(songRef.current);
       const offsetSec = songRef.current.audioSource.offsetMilliseconds / 1000.0;
-      const audioSec = (currentBeatRef.current / baseBpm) * 60.0 + offsetSec;
-      if (audioSec >= 0) {
-        sharedYouTubeEngine.play(audioSec);
-      } else {
-        // Count-in lead-in active: pause and cue at 0 so it starts at beat 0
-        sharedYouTubeEngine.pause();
-        sharedYouTubeEngine.seek(0);
-      }
+      const audioSec = Math.max(
+        0,
+        (currentBeatRef.current / baseBpm) * 60.0 + offsetSec
+      );
+      sharedYouTubeEngine.play(audioSec);
     }
   }, [seek, startBeat]);
 
@@ -457,21 +461,13 @@ export const FretStackProvider: React.FC<{ children: React.ReactNode }> = ({
       ) {
         const baseBpm = getEffectiveAudioBaseBpm(curSong);
         const offsetSec = curSong.audioSource.offsetMilliseconds / 1000.0;
-        const expectedAudioSec = (nextBeat / baseBpm) * 60.0 + offsetSec;
-        if (expectedAudioSec >= 0) {
-          if (!sharedYouTubeEngine.isPlayingBack) {
-            sharedYouTubeEngine.play(expectedAudioSec);
-          } else {
-            const drift = Math.abs(sharedYouTubeEngine.currentTime - expectedAudioSec);
-            if (drift > 0.5) {
-              sharedYouTubeEngine.seek(expectedAudioSec);
-            }
-          }
+        const expectedAudioSec = Math.max(0, (nextBeat / baseBpm) * 60.0 + offsetSec);
+        if (!sharedYouTubeEngine.isPlayingBack) {
+          sharedYouTubeEngine.play(expectedAudioSec);
         } else {
-          // Count-in lead-in (negative beats): keep YouTube paused at 0
-          if (sharedYouTubeEngine.isPlayingBack) {
-            sharedYouTubeEngine.pause();
-            sharedYouTubeEngine.seek(0);
+          const drift = Math.abs(sharedYouTubeEngine.currentTime - expectedAudioSec);
+          if (drift > 0.45) {
+            sharedYouTubeEngine.seek(expectedAudioSec);
           }
         }
       }
@@ -808,9 +804,12 @@ export const FretStackProvider: React.FC<{ children: React.ReactNode }> = ({
       }
       setCurrentTrackIndex(trackIdx);
       setSelectedNoteId(null);
-      const lead = isCountInEnabled
-        ? -(leadInBars * beatsPerMeasure(nextSong.timeSignature))
-        : 0;
+      const isYT =
+        nextSong.audioSource.sourceType === "External Stream / YouTube Link";
+      const lead =
+        !isYT && isCountInEnabled
+          ? -(leadInBars * beatsPerMeasure(nextSong.timeSignature))
+          : 0;
       currentBeatRef.current = lead;
       setCurrentBeatState(lead);
       setCurrentScreen("runnerStudio");

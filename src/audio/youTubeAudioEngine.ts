@@ -276,20 +276,23 @@ export class YouTubeAudioEngine {
     if (this.pendingVideoId) {
       const vid = this.pendingVideoId;
       const seekSec = this.pendingSeekSeconds ?? 0;
+      const willPlay = this.pendingPlay;
       this.pendingVideoId = null;
       this.pendingSeekSeconds = null;
-      this.loadVideo(vid, seekSec, this.pendingPlay);
       this.pendingPlay = false;
+      this.loadVideo(vid, seekSec, willPlay);
     } else if (this.pendingSeekSeconds !== null) {
-      this.seek(this.pendingSeekSeconds);
+      const seekSec = this.pendingSeekSeconds;
+      const willPlay = this.pendingPlay;
       this.pendingSeekSeconds = null;
-      if (this.pendingPlay) {
-        this.play();
-        this.pendingPlay = false;
+      this.pendingPlay = false;
+      this.seek(seekSec);
+      if (willPlay) {
+        this.play(seekSec);
       }
     } else if (this.pendingPlay) {
-      this.play();
       this.pendingPlay = false;
+      this.play();
     }
 
     this.notify();
@@ -374,16 +377,39 @@ export class YouTubeAudioEngine {
     }
 
     try {
-      if (atSeconds !== undefined && !isNaN(atSeconds)) {
-        const clamped = Math.max(0, atSeconds);
-        if (Math.abs(this.currentTime - clamped) > 0.35) {
-          this.player.seekTo(clamped, true);
-          this._lastReportedTime = clamped;
-        }
-      }
       this.applyVolumeAndMute();
       this.applyPlaybackRate();
-      this.player.playVideo();
+
+      const targetSec =
+        atSeconds !== undefined && !isNaN(atSeconds)
+          ? Math.max(0, atSeconds)
+          : this.currentTime;
+
+      let playerState = -1;
+      if (this.player && typeof this.player.getPlayerState === "function") {
+        try {
+          playerState = this.player.getPlayerState();
+        } catch {
+          // ignore
+        }
+      }
+
+      // If video is cued (5) or unstarted (-1), loadVideoById starts stream immediately on user click
+      if ((playerState === 5 || playerState === -1) && this._currentVideoId) {
+        this.player.loadVideoById({
+          videoId: this._currentVideoId,
+          startSeconds: targetSec,
+        });
+      } else {
+        if (atSeconds !== undefined && !isNaN(atSeconds)) {
+          if (Math.abs(this.currentTime - targetSec) > 0.35) {
+            this.player.seekTo(targetSec, true);
+            this._lastReportedTime = targetSec;
+          }
+        }
+        this.player.playVideo();
+      }
+
       this._isPlaying = true;
       this.pendingPlay = false;
       this.notify();

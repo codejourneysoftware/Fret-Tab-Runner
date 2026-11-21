@@ -51,50 +51,37 @@ export const YouTubeSyncHost: React.FC = () => {
     };
   }, []);
 
-  // When song or webUrl changes, un-dismiss the player if it was closed
+  // When song or webUrl changes, un-dismiss the player and ensure video is loaded
   useEffect(() => {
-    if (videoId) {
+    if (isYouTubeSource && videoId) {
       setIsDismissed(false);
+      sharedYouTubeEngine.loadVideo(videoId);
     }
-  }, [videoId, song.id]);
+  }, [isYouTubeSource, videoId, song.id]);
 
-  if (!isYouTubeSource || !videoId) {
-    return (
-      <div
-        id="fret-tab-runner-yt-player-container"
-        style={{
-          position: "fixed",
-          bottom: -9999,
-          left: -9999,
-          width: 1,
-          height: 1,
-          opacity: 0,
-          pointerEvents: "none",
-        }}
-      >
-        <div id="fret-tab-runner-yt-player" />
-      </div>
-    );
-  }
+  const isVisible = isYouTubeSource && Boolean(videoId) && !isDismissed && !isMinimized;
+  const isPillVisible = isYouTubeSource && Boolean(videoId) && (isMinimized || isDismissed);
 
   return (
     <>
-      {/* Persistent DOM element hosting YouTube iframe so it never gets unmounted */}
+      {/* Persistent DOM element hosting YouTube iframe so it NEVER gets unmounted */}
       <div
         id="fret-tab-runner-yt-player-container"
         style={{
           position: "fixed",
-          bottom: isDismissed || isMinimized ? -9999 : 24,
-          right: isDismissed || isMinimized ? -9999 : 24,
-          width: isDismissed || isMinimized ? 1 : 320,
-          height: isDismissed || isMinimized ? 1 : 180,
-          opacity: isDismissed || isMinimized ? 0.01 : 1,
-          pointerEvents: isDismissed || isMinimized ? "none" : "auto",
+          bottom: isVisible ? 24 : -9999,
+          right: isVisible ? 24 : -9999,
+          width: isVisible ? 320 : 1,
+          height: isVisible ? 180 : 1,
+          opacity: isVisible ? 1 : 0.001,
+          pointerEvents: isVisible ? "auto" : "none",
           zIndex: 9999,
           borderRadius: 12,
           overflow: "hidden",
-          boxShadow: "0 10px 30px rgba(0,0,0,0.6), 0 0 15px rgba(0,229,255,0.3)",
-          border: "1px solid rgba(0,229,255,0.4)",
+          boxShadow: isVisible
+            ? "0 10px 30px rgba(0,0,0,0.6), 0 0 15px rgba(0,229,255,0.3)"
+            : "none",
+          border: isVisible ? "1px solid rgba(0,229,255,0.4)" : "none",
           background: "#000",
           transition: "all 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
         }}
@@ -218,7 +205,7 @@ export const YouTubeSyncHost: React.FC = () => {
       </div>
 
       {/* Floating Pill when Minimized or Dismissed */}
-      {(isMinimized || isDismissed) && (
+      {isPillVisible && (
         <div
           style={{
             position: "fixed",
