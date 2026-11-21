@@ -603,49 +603,11 @@ export function createTwinkleTwinkleLittleStar(): FretStackSong {
   };
 }
 
-export function createYouMadeMyLifeBrandNew(): FretStackSong {
-  return {
-    id: "9e3d09c9-3489-4449-bf12-256ecff91a67",
-    title: "You Made My Life Brand NEw",
-    artist: "Sam Ortiz",
-    composer: "FretTabRunner Creator",
-    bpm: 80,
-    timeSignature: {
-      numerator: 4,
-      denominator: 4,
-    },
-    totalMeasures: 50,
-    audioSource: {
-      sourceType: "External Stream / YouTube Link",
-      offsetMilliseconds: 0,
-      volume: 1,
-      isMuted: false,
-      webUrl:
-        "https://www.youtube.com/watch?v=guOi0UaE9EI&list=RDguOi0UaE9EI&start_radio=1",
-    },
-    tracks: [
-      {
-        id: "1516d3eb-bd25-4d48-baa6-a9b7366c97ed",
-        name: "Lead Guitar",
-        instrumentId: "guitar-6string",
-        notes: [],
-        isSolo: false,
-        isMuted: false,
-      },
-    ],
-    version: "1.0",
-    createdAt: "2026-11-21T19:45:56.745Z",
-    modifiedAt: "2026-11-21T19:51:01.825Z",
-    notesDescription: "YouTube synchronized backing stream demonstration.",
-  };
-}
-
 export function getAllSampleSongs(): FretStackSong[] {
   return [
     createNeonHorizonRiff(),
     createDeltaSunsetBlues(),
     createAcousticRaindrops(),
     createTwinkleTwinkleLittleStar(),
-    createYouMadeMyLifeBrandNew(),
   ];
 }

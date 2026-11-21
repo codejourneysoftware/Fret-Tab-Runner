@@ -35,11 +35,11 @@ export type YouTubeListener = (state: YouTubeEngineState) => void;
 
 /**
  * Extracts an 11-character YouTube video ID from various URL formats:
- * - https://www.youtube.com/watch?v=guOi0UaE9EI&list=...
- * - https://youtu.be/guOi0UaE9EI
- * - https://www.youtube.com/embed/guOi0UaE9EI
- * - https://www.youtube.com/shorts/guOi0UaE9EI
- * - https://music.youtube.com/watch?v=guOi0UaE9EI
+ * - https://www.youtube.com/watch?v=dQw4w9WgXcQ&list=...
+ * - https://youtu.be/dQw4w9WgXcQ
+ * - https://www.youtube.com/embed/dQw4w9WgXcQ
+ * - https://www.youtube.com/shorts/dQw4w9WgXcQ
+ * - https://music.youtube.com/watch?v=dQw4w9WgXcQ
  * - Raw 11-character video ID
  */
 export function extractYouTubeVideoId(url: string | null | undefined): string | null {
