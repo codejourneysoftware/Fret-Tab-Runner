@@ -60,7 +60,12 @@ export async function openTextFileDialog(
   return new Promise((resolve) => {
     const input = document.createElement("input");
     input.type = "file";
-    input.accept = filters.flatMap((f) => f.extensions.map((e) => `.${e}`)).join(",");
+    const hasWildcard = filters.some((f) => f.extensions.includes("*"));
+    if (!hasWildcard && filters.length > 0) {
+      input.accept = filters
+        .flatMap((f) => f.extensions.map((e) => (e.startsWith(".") ? e : `.${e}`)))
+        .join(",");
+    }
     input.onchange = () => {
       const file = input.files?.[0];
       if (!file) {

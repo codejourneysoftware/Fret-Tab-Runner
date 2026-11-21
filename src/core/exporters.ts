@@ -12,7 +12,7 @@ export function encodeSongToJSON(song: FretStackSong): string {
 export function decodeSongFromJSON(jsonString: string): FretStackSong {
   const parsed = JSON.parse(jsonString);
   if (!parsed || typeof parsed !== "object" || !Array.isArray(parsed.tracks)) {
-    throw new Error("Invalid .fretstack.json format: missing tracks array.");
+    throw new Error("Invalid song file format: missing tracks array.");
   }
   return parsed as FretStackSong;
 }

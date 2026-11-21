@@ -9,7 +9,7 @@
 - **Karplus-Strong Physical String Synthesis**: Zero-dependency Web Audio API polyphonic plucked string synthesizer with string-dependent damping, DC-block highpass, and brilliance EQ, plus accented metronome clicks.
 - **Audio Backing Track Sync**: Bundled royalty-free MP3 backing tracks (*Neon Horizon Riff*, *Delta Sunset Blues*, *Acoustic Raindrops*), local MP3/WAV/M4A file loading, BPM/speed scaling, and ±1000ms offset calibration.
 - **Modular Instrument Hub**: 6-String Guitar (`E-A-D-G-B-e`) and 4-String Bass (`E-A-D-G`) engines, plus Album & Library Manager with 10 cover presets and JSON backup/restore.
-- **Open Interchange Formats**: Import/Export `.fretstack.json`, W3C MusicXML 4.0 (`.musicxml`), and ASCII Tablature (`.tab.txt`).
+- **Open Interchange Formats**: Import/Export `.json` / `.fretstack` song files, W3C MusicXML 4.0 (`.musicxml`), and ASCII Tablature (`.tab.txt`).
 
 ## Development
 

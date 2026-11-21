@@ -38,7 +38,8 @@ export const ModularInstrumentHub: React.FC = () => {
 
   const handleImportSong = async () => {
     const picked = await openTextFileDialog([
-      { name: "FretStack JSON", extensions: ["json"] },
+      { name: "Song Files (*.json, *.fretstack)", extensions: ["json", "fretstack"] },
+      { name: "All Files (*.*)", extensions: ["*"] },
     ]);
     if (!picked) return;
     try {
@@ -108,7 +109,7 @@ export const ModularInstrumentHub: React.FC = () => {
 
           <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
             <button className="btn" onClick={handleImportSong}>
-              <FolderOpen size={14} /> Open .fretstack.json
+              <FolderOpen size={14} /> Open Song (.json / .fretstack)
             </button>
             <button
               className="btn"

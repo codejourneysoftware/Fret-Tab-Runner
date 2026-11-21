@@ -32,21 +32,22 @@ export const ExportImportModal: React.FC<ExportImportModalProps> = ({
   const safeFileBase = song.title.replace(/[^a-z0-9_-]/gi, "_") || "song";
 
   const handleSave = async () => {
-    const extMap: Record<TabFormat, { ext: string; name: string }> = {
-      json: { ext: "fretstack.json", name: "FretStack JSON" },
-      musicxml: { ext: "musicxml", name: "MusicXML 4.0" },
-      ascii: { ext: "tab.txt", name: "ASCII Tablature" },
+    const extMap: Record<TabFormat, { ext: string; name: string; extensions: string[] }> = {
+      json: { ext: "json", name: "Song JSON", extensions: ["json", "fretstack"] },
+      musicxml: { ext: "musicxml", name: "MusicXML 4.0", extensions: ["musicxml", "xml"] },
+      ascii: { ext: "tab.txt", name: "ASCII Tablature", extensions: ["txt", "tab"] },
     };
     const meta = extMap[activeTab];
     const ok = await saveTextFileDialog(`${safeFileBase}.${meta.ext}`, previewContent, [
-      { name: meta.name, extensions: [meta.ext.split(".").pop() ?? "txt"] },
+      { name: meta.name, extensions: meta.extensions },
     ]);
     if (ok) setStatusMsg(`Saved ${safeFileBase}.${meta.ext}`);
   };
 
   const handleImportJSON = async () => {
     const picked = await openTextFileDialog([
-      { name: "FretStack JSON", extensions: ["json"] },
+      { name: "Song Files (*.json, *.fretstack)", extensions: ["json", "fretstack"] },
+      { name: "All Files (*.*)", extensions: ["*"] },
     ]);
     if (!picked) return;
     try {
@@ -95,7 +96,7 @@ export const ExportImportModal: React.FC<ExportImportModalProps> = ({
             className={activeTab === "json" ? "btn btn-neon" : "btn"}
             onClick={() => setActiveTab("json")}
           >
-            FretStack JSON (.fretstack.json)
+            Song JSON (.json / .fretstack)
           </button>
           <button
             className={activeTab === "musicxml" ? "btn btn-neon" : "btn"}
@@ -111,7 +112,7 @@ export const ExportImportModal: React.FC<ExportImportModalProps> = ({
           </button>
           <div style={{ flex: 1 }} />
           <button className="btn" onClick={handleImportJSON}>
-            <Upload size={14} /> Import .fretstack.json
+            <Upload size={14} /> Import Song (.json / .fretstack)
           </button>
         </div>
 
