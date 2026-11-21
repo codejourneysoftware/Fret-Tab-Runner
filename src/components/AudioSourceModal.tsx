@@ -1,8 +1,22 @@
-import React from "react";
-import { Volume2, VolumeX, Upload, ExternalLink, X, Music } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import {
+  Volume2,
+  VolumeX,
+  Upload,
+  ExternalLink,
+  X,
+  Music,
+  Play,
+  Pause,
+  Tv,
+} from "lucide-react";
 import { openAudioFileDialog, openExternalUrl } from "../core/fileBridge";
 import { AudioSourceType } from "../core/songModel";
 import { sharedAudioEngine } from "../audio/audioEngine";
+import {
+  extractYouTubeVideoId,
+  sharedYouTubeEngine,
+} from "../audio/youTubeAudioEngine";
 import { useFretStack } from "../state/useFretStackStore";
 
 interface AudioSourceModalProps {
@@ -18,6 +32,25 @@ const SOURCE_TYPES: AudioSourceType[] = [
 export const AudioSourceModal: React.FC<AudioSourceModalProps> = ({ onClose }) => {
   const { song, setSong, setCustomAudioUrl } = useFretStack();
   const cfg = song.audioSource;
+  const [isYtPlaying, setIsYtPlaying] = useState(false);
+  const detectedVideoId = extractYouTubeVideoId(cfg.webUrl);
+
+  useEffect(() => {
+    const unsub = sharedYouTubeEngine.subscribe((s) => {
+      setIsYtPlaying(s.isPlaying);
+    });
+    return unsub;
+  }, []);
+
+  const toggleTestPlayYt = () => {
+    if (isYtPlaying) {
+      sharedYouTubeEngine.pause();
+    } else {
+      if (detectedVideoId) {
+        sharedYouTubeEngine.play(0);
+      }
+    }
+  };
 
   const updateAudio = (patch: Partial<typeof cfg>) => {
     setSong((prev) => ({
@@ -126,12 +159,31 @@ export const AudioSourceModal: React.FC<AudioSourceModalProps> = ({ onClose }) =
                 border: "1px solid var(--border-subtle)",
                 display: "flex",
                 flexDirection: "column",
-                gap: 8,
+                gap: 10,
               }}
             >
-              <label style={{ fontSize: 11, color: "var(--text-secondary)" }}>
-                Reference Stream / YouTube URL
-              </label>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <label style={{ fontSize: 11, color: "var(--text-secondary)" }}>
+                  Reference Stream / YouTube URL
+                </label>
+                {detectedVideoId && (
+                  <span
+                    style={{
+                      fontSize: 10,
+                      padding: "2px 6px",
+                      borderRadius: 4,
+                      background: "rgba(0,229,255,0.15)",
+                      color: "#00e5ff",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 4,
+                    }}
+                  >
+                    <Tv size={10} /> ID: {detectedVideoId}
+                  </span>
+                )}
+              </div>
+
               <div style={{ display: "flex", gap: 8 }}>
                 <input
                   type="url"
@@ -144,11 +196,40 @@ export const AudioSourceModal: React.FC<AudioSourceModalProps> = ({ onClose }) =
                   <button
                     className="btn"
                     onClick={() => openExternalUrl(cfg.webUrl!)}
+                    title="Open on YouTube"
                   >
-                    <ExternalLink size={14} /> Open
+                    <ExternalLink size={14} />
                   </button>
                 )}
               </div>
+
+              {detectedVideoId && (
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    padding: "8px 10px",
+                    background: "rgba(0,0,0,0.3)",
+                    borderRadius: 8,
+                    border: "1px solid rgba(255,255,255,0.06)",
+                  }}
+                >
+                  <span style={{ fontSize: 11, color: "var(--text-secondary)" }}>
+                    {sharedYouTubeEngine.isReady
+                      ? "● Audio Engine Synced & Ready"
+                      : "Connecting to YouTube..."}
+                  </span>
+                  <button
+                    className={isYtPlaying ? "btn btn-danger" : "btn btn-neon"}
+                    style={{ padding: "4px 10px", fontSize: 11 }}
+                    onClick={toggleTestPlayYt}
+                  >
+                    {isYtPlaying ? <Pause size={12} /> : <Play size={12} />}
+                    {isYtPlaying ? "Stop Audio" : "Test Play Audio"}
+                  </button>
+                </div>
+              )}
             </div>
           )}
 

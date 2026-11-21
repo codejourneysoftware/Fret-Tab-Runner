@@ -9,6 +9,10 @@ import React, {
 } from "react";
 import { sharedAudioEngine } from "../audio/audioEngine";
 import {
+  extractYouTubeVideoId,
+  sharedYouTubeEngine,
+} from "../audio/youTubeAudioEngine";
+import {
   AlbumCoverPreset,
   createDefaultDemoAlbum,
   createNewAlbum,
@@ -227,20 +231,52 @@ export const FretStackProvider: React.FC<{ children: React.ReactNode }> = ({
     sharedAudioEngine.setPlaybackRate(rate);
     sharedAudioEngine.setMusicVolume(song.audioSource.volume);
     sharedAudioEngine.setMusicMuted(song.audioSource.isMuted);
+
+    if (song.audioSource.sourceType === "External Stream / YouTube Link") {
+      sharedYouTubeEngine.setPlaybackRate(playbackSpeed);
+      sharedYouTubeEngine.setVolume(song.audioSource.volume);
+      sharedYouTubeEngine.setMuted(song.audioSource.isMuted);
+    }
   }, [song, playbackSpeed]);
 
   // Load backing audio URL when song audioSource changes
   useEffect(() => {
     if (song.audioSource.sourceType === "Local Audio File (MP3/WAV)") {
+      sharedYouTubeEngine.clear();
       const url = resolveAudioUrl(
         song.audioSource.localFilePath,
         customAudioUrls[song.id]
       );
       sharedAudioEngine.loadBackingAudioUrl(url);
+    } else if (song.audioSource.sourceType === "External Stream / YouTube Link") {
+      sharedAudioEngine.unloadBackingAudio();
+      const videoId = extractYouTubeVideoId(song.audioSource.webUrl);
+      if (videoId) {
+        const baseBpm = getEffectiveAudioBaseBpm(song);
+        const offsetSec = song.audioSource.offsetMilliseconds / 1000.0;
+        const initialSec = Math.max(
+          0,
+          (currentBeatRef.current / baseBpm) * 60.0 + offsetSec
+        );
+        sharedYouTubeEngine.loadVideo(
+          videoId,
+          initialSec,
+          isPlayingRef.current
+        );
+      } else {
+        sharedYouTubeEngine.clear();
+      }
     } else {
       sharedAudioEngine.unloadBackingAudio();
+      sharedYouTubeEngine.clear();
     }
-  }, [song.id, song.audioSource.sourceType, song.audioSource.localFilePath, customAudioUrls]);
+  }, [
+    song.id,
+    song.audioSource.sourceType,
+    song.audioSource.localFilePath,
+    song.audioSource.webUrl,
+    customAudioUrls,
+  ]);
 
   const setCurrentBeat = useCallback((beat: number) => {
     const prev = currentBeatRef.current;
@@ -256,6 +292,7 @@ export const FretStackProvider: React.FC<{ children: React.ReactNode }> = ({
     setIsPlaying(false);
     isPlayingRef.current = false;
     sharedAudioEngine.pauseBacking();
+    sharedYouTubeEngine.pause();
     if (rafIdRef.current !== null) {
       cancelAnimationFrame(rafIdRef.current);
       rafIdRef.current = null;
@@ -284,6 +321,21 @@ export const FretStackProvider: React.FC<{ children: React.ReactNode }> = ({
             sharedAudioEngine.playBacking(audioSec);
           }
         }
+      } else if (
+        songRef.current.audioSource.sourceType === "External Stream / YouTube Link"
+      ) {
+        const baseBpm = getEffectiveAudioBaseBpm(songRef.current);
+        const offsetSec = songRef.current.audioSource.offsetMilliseconds / 1000.0;
+        const audioSec = Math.max(0, (clamped / baseBpm) * 60.0 + offsetSec);
+        if (clamped < 0) {
+          sharedYouTubeEngine.pause();
+          sharedYouTubeEngine.seek(0);
+        } else {
+          sharedYouTubeEngine.seek(audioSec);
+          if (isPlayingRef.current) {
+            sharedYouTubeEngine.play(audioSec);
+          }
+        }
       }
     },
     [startBeat]
@@ -305,6 +357,18 @@ export const FretStackProvider: React.FC<{ children: React.ReactNode }> = ({
     setIsPlaying(true);
     isPlayingRef.current = true;
     lastFrameTimeRef.current = performance.now();
+
+    if (
+      songRef.current.audioSource.sourceType === "External Stream / YouTube Link"
+    ) {
+      const baseBpm = getEffectiveAudioBaseBpm(songRef.current);
+      const offsetSec = songRef.current.audioSource.offsetMilliseconds / 1000.0;
+      const audioSec = Math.max(
+        0,
+        (currentBeatRef.current / baseBpm) * 60.0 + offsetSec
+      );
+      sharedYouTubeEngine.play(audioSec);
+    }
   }, [seek, startBeat]);
 
   const togglePlayPause = useCallback(() => {
@@ -314,6 +378,27 @@ export const FretStackProvider: React.FC<{ children: React.ReactNode }> = ({
       play();
     }
   }, [pause, play]);
+
+  // Bi-directional YouTube state synchronization
+  useEffect(() => {
+    const unsubscribe = sharedYouTubeEngine.subscribe((ytState) => {
+      if (
+        songRef.current.audioSource.sourceType !== "External Stream / YouTube Link"
+      ) {
+        return;
+      }
+      if (ytState.isPlaying && !isPlayingRef.current) {
+        setIsPlaying(true);
+        isPlayingRef.current = true;
+        lastFrameTimeRef.current = performance.now();
+      } else if (!ytState.isPlaying && isPlayingRef.current && !ytState.isBuffering) {
+        pause();
+      }
+    });
+    return () => {
+      unsubscribe();
+    };
+  }, [pause]);
 
   // rAF Playback Loop
   useEffect(() => {
@@ -359,6 +444,23 @@ export const FretStackProvider: React.FC<{ children: React.ReactNode }> = ({
             }
           }
         }
+      } else if (
+        curSong.audioSource.sourceType === "External Stream / YouTube Link" &&
+        sharedYouTubeEngine.isReady
+      ) {
+        const baseBpm = getEffectiveAudioBaseBpm(curSong);
+        const offsetSec = curSong.audioSource.offsetMilliseconds / 1000.0;
+        const expectedAudioSec = (nextBeat / baseBpm) * 60.0 + offsetSec;
+        if (expectedAudioSec >= 0) {
+          if (!sharedYouTubeEngine.isPlayingBack) {
+            sharedYouTubeEngine.play(expectedAudioSec);
+          } else {
+            const drift = Math.abs(sharedYouTubeEngine.currentTime - expectedAudioSec);
+            if (drift > 0.45) {
+              sharedYouTubeEngine.seek(expectedAudioSec);
+            }
+          }
+        }
       }
 
       // Trigger Karplus-Strong notes on active tracks
@@ -367,7 +469,9 @@ export const FretStackProvider: React.FC<{ children: React.ReactNode }> = ({
         synthEnabledRef.current &&
         (curSong.audioSource.sourceType === "Synthesizer Only" ||
           curSong.audioSource.isMuted ||
-          !sharedAudioEngine.hasBackingAudio);
+          (curSong.audioSource.sourceType === "Local Audio File (MP3/WAV)" &&
+            !sharedAudioEngine.hasBackingAudio) ||
+          curSong.audioSource.sourceType === "External Stream / YouTube Link");
 
       if (shouldPlaySynth) {
         curSong.tracks.forEach((track) => {

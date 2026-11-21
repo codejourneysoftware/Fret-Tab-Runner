@@ -9,6 +9,7 @@ import {
   Play,
   Plus,
   Sparkles,
+  Tv,
   Volume2,
 } from "lucide-react";
 import { ALL_INSTRUMENTS } from "../core/instrumentSpec";
@@ -441,6 +442,23 @@ export const ModularInstrumentHub: React.FC = () => {
                             }}
                           >
                             <Volume2 size={10} /> MP3
+                          </span>
+                        ) : s.audioSource.sourceType ===
+                          "External Stream / YouTube Link" ? (
+                          <span
+                            title="YouTube Streaming Backing Track"
+                            style={{
+                              fontSize: 10,
+                              padding: "2px 6px",
+                              borderRadius: 6,
+                              background: "rgba(255,0,85,0.16)",
+                              color: "#ff3366",
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: 4,
+                            }}
+                          >
+                            <Tv size={10} /> YouTube
                           </span>
                         ) : (
                           <span

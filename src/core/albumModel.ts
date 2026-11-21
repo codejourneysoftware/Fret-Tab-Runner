@@ -88,7 +88,20 @@ export function loadPersistedAlbums(): FretStackAlbum[] {
     const raw = localStorage.getItem(ALBUMS_STORAGE_KEY);
     if (!raw) return [createDefaultDemoAlbum()];
     const parsed = decodeAlbumsBackup(raw);
-    return parsed.length > 0 ? parsed : [createDefaultDemoAlbum()];
+    if (parsed.length === 0) return [createDefaultDemoAlbum()];
+
+    // Ensure built-in sample songs are available in the Demo album
+    const demo = parsed.find((a) => a.id === DEMO_ALBUM_ID);
+    if (demo) {
+      const allSamples = getAllSampleSongs();
+      allSamples.forEach((sample) => {
+        if (!demo.songs.some((s) => s.id === sample.id || (s.title === sample.title && s.artist === sample.artist))) {
+          demo.songs.push(sample);
+        }
+      });
+    }
+
+    return parsed;
   } catch {
     return [createDefaultDemoAlbum()];
   }
