@@ -8,8 +8,11 @@ node_modules
 dist
 dist-ssr
 
-# Tauri build output
+# Tauri & Desktop build output
 src-tauri/target
+release/
+src-desktop/bin
+src-desktop/obj
 
 # Editor & OS
 .DS_Store

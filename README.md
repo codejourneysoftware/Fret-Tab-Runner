@@ -11,15 +11,22 @@
 - **Modular Instrument Hub**: 6-String Guitar (`E-A-D-G-B-e`) and 4-String Bass (`E-A-D-G`) engines, plus Album & Library Manager with 10 cover presets and JSON backup/restore.
 - **Open Interchange Formats**: Import/Export `.json` / `.fretstack` song files, W3C MusicXML 4.0 (`.musicxml`), and ASCII Tablature (`.tab.txt`).
 
-## Development
+## Development & Desktop Build
 
 ```bash
 npm install
-npm run dev        # Run Vite frontend in browser
-npm run build      # TypeScript check + Vite production bundle
-npm run tauri dev  # Run desktop app (requires Rust / Cargo)
-npm run tauri build
+npm run dev           # Run Vite frontend in browser
+npm run build         # Build production web bundle + Windows Desktop Executable (.exe) & refresh Desktop shortcut
+npm start             # Launch the compiled Windows Desktop Executable
 ```
+
+### Desktop Executable & Shortcut
+
+Every time you run `npm run build`:
+- It bundles the web application (`dist/`).
+- Compiles the native single-file Windows desktop executable (`release/FretTabRunner.exe`).
+- Automatically creates/refreshes your Windows Desktop shortcut (`FretTabRunner.lnk`) with the custom acoustic guitar icon.
+- You can double-click the shortcut on your Desktop or run `npm start` anytime to open the application!
 
 ## License
 
