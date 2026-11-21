@@ -27,6 +27,8 @@ export interface YouTubeEngineState {
   duration: number;
   videoId: string | null;
   errorCode: number | null;
+  isUserAction: boolean;
+  isEnded: boolean;
 }
 
 export type YouTubeListener = (state: YouTubeEngineState) => void;
@@ -123,10 +125,23 @@ export class YouTubeAudioEngine {
   private _isMuted = false;
   private _playbackRate = 1.0;
   private _errorCode: number | null = null;
+  private _isUserAction = false;
+  private _isEnded = false;
+
+  private isProgrammatic = false;
+  private programmaticTimer: any = null;
 
   private pendingVideoId: string | null = null;
   private pendingSeekSeconds: number | null = null;
   private pendingPlay = false;
+
+  private markProgrammatic(durationMs = 450): void {
+    this.isProgrammatic = true;
+    if (this.programmaticTimer) clearTimeout(this.programmaticTimer);
+    this.programmaticTimer = setTimeout(() => {
+      this.isProgrammatic = false;
+    }, durationMs);
+  }
 
   private listeners = new Set<YouTubeListener>();
 
@@ -200,6 +215,8 @@ export class YouTubeAudioEngine {
       duration: this.duration,
       videoId: this._currentVideoId,
       errorCode: this._errorCode,
+      isUserAction: this._isUserAction,
+      isEnded: this._isEnded,
     };
   }
 
@@ -280,6 +297,9 @@ export class YouTubeAudioEngine {
 
   private handlePlayerStateChange(event: any): void {
     const state = event.data;
+    this._isUserAction = !this.isProgrammatic;
+    this._isEnded = state === 0;
+
     // YT.PlayerState: -1 = UNSTARTED, 0 = ENDED, 1 = PLAYING, 2 = PAUSED, 3 = BUFFERING, 5 = CUED
     if (state === 1) {
       this._isPlaying = true;
@@ -303,6 +323,7 @@ export class YouTubeAudioEngine {
   }
 
   public loadVideo(videoId: string, startSeconds = 0, autoPlay = false): void {
+    this.markProgrammatic();
     this._errorCode = null;
     if (!this.isReady) {
       this.pendingVideoId = videoId;
@@ -343,6 +364,7 @@ export class YouTubeAudioEngine {
   }
 
   public play(atSeconds?: number): void {
+    this.markProgrammatic();
     this.pendingPlay = true;
     if (!this.isReady) {
       if (atSeconds !== undefined) {
@@ -354,8 +376,10 @@ export class YouTubeAudioEngine {
     try {
       if (atSeconds !== undefined && !isNaN(atSeconds)) {
         const clamped = Math.max(0, atSeconds);
-        this.player.seekTo(clamped, true);
-        this._lastReportedTime = clamped;
+        if (Math.abs(this.currentTime - clamped) > 0.35) {
+          this.player.seekTo(clamped, true);
+          this._lastReportedTime = clamped;
+        }
       }
       this.applyVolumeAndMute();
       this.applyPlaybackRate();
@@ -369,6 +393,7 @@ export class YouTubeAudioEngine {
   }
 
   public pause(): void {
+    this.markProgrammatic();
     this.pendingPlay = false;
     if (!this.isReady) return;
     try {
@@ -381,14 +406,17 @@ export class YouTubeAudioEngine {
   }
 
   public seek(seconds: number): void {
+    this.markProgrammatic();
     const clamped = Math.max(0, seconds);
     if (!this.isReady) {
       this.pendingSeekSeconds = clamped;
       return;
     }
     try {
-      this.player.seekTo(clamped, true);
-      this._lastReportedTime = clamped;
+      if (Math.abs(this.currentTime - clamped) > 0.25) {
+        this.player.seekTo(clamped, true);
+        this._lastReportedTime = clamped;
+      }
       this.notify();
     } catch {
       // Ignore
@@ -396,6 +424,7 @@ export class YouTubeAudioEngine {
   }
 
   public stop(): void {
+    this.markProgrammatic();
     this.pendingPlay = false;
     if (!this.isReady) return;
     try {

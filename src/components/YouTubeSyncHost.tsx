@@ -27,6 +27,8 @@ export const YouTubeSyncHost: React.FC = () => {
     duration: 0,
     videoId: null,
     errorCode: null,
+    isUserAction: false,
+    isEnded: false,
   });
 
   const [isMinimized, setIsMinimized] = useState<boolean>(false);

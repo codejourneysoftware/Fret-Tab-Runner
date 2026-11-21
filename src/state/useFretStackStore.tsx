@@ -326,8 +326,8 @@ export const FretStackProvider: React.FC<{ children: React.ReactNode }> = ({
       ) {
         const baseBpm = getEffectiveAudioBaseBpm(songRef.current);
         const offsetSec = songRef.current.audioSource.offsetMilliseconds / 1000.0;
-        const audioSec = Math.max(0, (clamped / baseBpm) * 60.0 + offsetSec);
-        if (clamped < 0) {
+        const audioSec = (clamped / baseBpm) * 60.0 + offsetSec;
+        if (audioSec < 0) {
           sharedYouTubeEngine.pause();
           sharedYouTubeEngine.seek(0);
         } else {
@@ -363,11 +363,14 @@ export const FretStackProvider: React.FC<{ children: React.ReactNode }> = ({
     ) {
       const baseBpm = getEffectiveAudioBaseBpm(songRef.current);
       const offsetSec = songRef.current.audioSource.offsetMilliseconds / 1000.0;
-      const audioSec = Math.max(
-        0,
-        (currentBeatRef.current / baseBpm) * 60.0 + offsetSec
-      );
-      sharedYouTubeEngine.play(audioSec);
+      const audioSec = (currentBeatRef.current / baseBpm) * 60.0 + offsetSec;
+      if (audioSec >= 0) {
+        sharedYouTubeEngine.play(audioSec);
+      } else {
+        // Count-in lead-in active: pause and cue at 0 so it starts at beat 0
+        sharedYouTubeEngine.pause();
+        sharedYouTubeEngine.seek(0);
+      }
     }
   }, [seek, startBeat]);
 
@@ -387,11 +390,15 @@ export const FretStackProvider: React.FC<{ children: React.ReactNode }> = ({
       ) {
         return;
       }
-      if (ytState.isPlaying && !isPlayingRef.current) {
-        setIsPlaying(true);
-        isPlayingRef.current = true;
-        lastFrameTimeRef.current = performance.now();
-      } else if (!ytState.isPlaying && isPlayingRef.current && !ytState.isBuffering) {
+      if (ytState.isUserAction) {
+        if (ytState.isPlaying && !isPlayingRef.current) {
+          setIsPlaying(true);
+          isPlayingRef.current = true;
+          lastFrameTimeRef.current = performance.now();
+        } else if (!ytState.isPlaying && isPlayingRef.current && !ytState.isBuffering) {
+          pause();
+        }
+      } else if (ytState.isEnded && isPlayingRef.current) {
         pause();
       }
     });
@@ -456,9 +463,15 @@ export const FretStackProvider: React.FC<{ children: React.ReactNode }> = ({
             sharedYouTubeEngine.play(expectedAudioSec);
           } else {
             const drift = Math.abs(sharedYouTubeEngine.currentTime - expectedAudioSec);
-            if (drift > 0.45) {
+            if (drift > 0.5) {
               sharedYouTubeEngine.seek(expectedAudioSec);
             }
+          }
+        } else {
+          // Count-in lead-in (negative beats): keep YouTube paused at 0
+          if (sharedYouTubeEngine.isPlayingBack) {
+            sharedYouTubeEngine.pause();
+            sharedYouTubeEngine.seek(0);
           }
         }
       }
