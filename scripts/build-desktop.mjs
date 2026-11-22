@@ -13,7 +13,7 @@ const csprojPath = path.resolve(rootDir, "src-desktop", "FretTabRunnerDesktop.cs
 
 console.log("\n🎸 [FretTabRunner] Compiling Desktop Executable...");
 
-// 1. Publish .NET Desktop WebView2 Executable
+// 1. Publish .NET Desktop WebView2 Executable into release/
 try {
   execSync(
     `dotnet publish "${csprojPath}" -c Release -r win-x64 --self-contained false -p:PublishSingleFile=true -o "${releaseDir}"`,
@@ -33,11 +33,24 @@ if (fs.existsSync(distDir)) {
   fs.cpSync(distDir, releaseDistDir, { recursive: true });
 }
 
-// 3. Ensure desktop shortcut exists and points to release/FretTabRunner.exe
+// 3. Copy executable to project root as FretTabRunner.exe and FretRunner.exe for easy access
+const releaseExe = path.resolve(releaseDir, "FretTabRunner.exe");
+const rootExe = path.resolve(rootDir, "FretTabRunner.exe");
+const aliasExe = path.resolve(rootDir, "FretRunner.exe");
+
+if (fs.existsSync(releaseExe)) {
+  fs.copyFileSync(releaseExe, rootExe);
+  fs.copyFileSync(releaseExe, aliasExe);
+  console.log("📂 Mirrored executable to workspace root for quick access:");
+  console.log(`   ${rootExe}`);
+  console.log(`   ${aliasExe}`);
+}
+
+// 4. Ensure desktop shortcut exists and points to release/FretTabRunner.exe
 console.log("🔗 Verifying Desktop shortcut...");
 const psScript = `
 $WshShell = New-Object -ComObject WScript.Shell
-$targetExe = "${path.resolve(releaseDir, "FretTabRunner.exe").replace(/\\/g, "\\\\")}"
+$targetExe = "${releaseExe.replace(/\\/g, "\\\\")}"
 $workingDir = "${releaseDir.replace(/\\/g, "\\\\")}"
 $iconLoc = "${path.resolve(releaseDir, "icon.ico").replace(/\\/g, "\\\\")}"
 
@@ -56,6 +69,16 @@ foreach ($dp in $desktopPaths) {
         $shortcut.Description = "FretTabRunner - Interactive Tablature & Fretboard Runner Engine"
         $shortcut.Save()
         Write-Output "   -> Desktop shortcut ready at: $shortcutPath"
+
+        # Also create a FretRunner.lnk alias shortcut for convenience
+        $aliasShortcutPath = Join-Path $dp "FretRunner.lnk"
+        $aliasShortcut = $WshShell.CreateShortcut($aliasShortcutPath)
+        $aliasShortcut.TargetPath = $targetExe
+        $aliasShortcut.WorkingDirectory = $workingDir
+        $aliasShortcut.IconLocation = "$iconLoc,0"
+        $aliasShortcut.Description = "FretRunner - Interactive Tablature & Fretboard Runner Engine"
+        $aliasShortcut.Save()
+        Write-Output "   -> Desktop shortcut ready at: $aliasShortcutPath"
     }
 }
 `;
@@ -69,5 +92,6 @@ try {
 }
 
 console.log("\n✅ [FretTabRunner] Build complete! Executable is ready at:");
-console.log(`   ${path.resolve(releaseDir, "FretTabRunner.exe")}`);
-console.log("   Desktop shortcut has been configured. You can double click it anytime to launch!\n");
+console.log(`   1) Desktop Shortcuts: 'FretTabRunner' and 'FretRunner'`);
+console.log(`   2) Workspace Root:    ${rootExe}`);
+console.log(`   3) Release Folder:    ${releaseExe}\n`);
