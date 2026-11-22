@@ -28,6 +28,14 @@ Every time you run `npm run build`:
 - Automatically creates/refreshes your Windows Desktop shortcut (`FretTabRunner.lnk`) with the custom acoustic guitar icon.
 - You can double-click the shortcut on your Desktop or run `npm start` anytime to open the application!
 
+## Legal & Copyright Disclaimer
+
+FretTabRunner is an open-source, local interactive tablature learning, practice, and composition tool.
+
+- **Local Creative Tool:** FretTabRunner does not host, publish, or distribute any proprietary sheet music, song tabs, or copyrighted music compositions.
+- **User Responsibility:** Users are solely responsible for ensuring that any tablature, chord arrangements, or media files they author, import, or export comply with applicable copyright laws and intellectual property rights in their jurisdiction.
+- **Third-Party Media Streams:** Any external media (such as YouTube streams) is delivered directly via official third-party embedded player APIs subject to the respective platform's terms of service. FretTabRunner does not download, rip, cache, or distribute third-party audio or video files.
+
 ## License
 
 MIT License. See [LICENSE](./LICENSE).

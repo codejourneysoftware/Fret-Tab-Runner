@@ -155,6 +155,10 @@ export const ExportImportModal: React.FC<ExportImportModalProps> = ({
             </button>
           </div>
         </div>
+
+        <div style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 12, textAlign: "center" }}>
+          Notice: Users are solely responsible for ensuring exported tabs and musical scores comply with applicable copyright laws.
+        </div>
       </div>
     </div>
   );

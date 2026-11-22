@@ -8,6 +8,7 @@ import {
   Music,
   Play,
   Plus,
+  Scale,
   Sparkles,
   Tv,
   Volume2,
@@ -525,6 +526,26 @@ export const ModularInstrumentHub: React.FC = () => {
               )}
             </div>
           )}
+
+          {/* Legal & Educational Disclaimer Footer */}
+          <div
+            style={{
+              marginTop: 12,
+              padding: "14px 18px",
+              borderRadius: 10,
+              background: "rgba(10, 14, 23, 0.75)",
+              border: "1px solid rgba(255, 255, 255, 0.08)",
+              display: "flex",
+              alignItems: "flex-start",
+              gap: 12,
+            }}
+          >
+            <Scale size={16} color="var(--strike-neon)" style={{ marginTop: 2, flexShrink: 0 }} />
+            <div style={{ fontSize: 11, color: "var(--text-muted)", lineHeight: 1.5 }}>
+              <strong style={{ color: "var(--text-secondary)" }}>Educational & Creative Use Notice:</strong>{" "}
+              FretTabRunner is an open-source, local interactive tablature learning and composition tool. It does not host, publish, or distribute any proprietary sheet music or copyrighted music compositions. Users are solely responsible for ensuring that any tablature, audio, or media files they author, import, or export comply with applicable copyright laws in their jurisdiction.
+            </div>
+          </div>
         </div>
       </div>
 
