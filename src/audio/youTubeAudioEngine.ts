@@ -256,7 +256,7 @@ export class YouTubeAudioEngine {
         rel: 0,
         playsinline: 1,
         enablejsapi: 1,
-        fs: 0,
+        fs: 1,
         origin: typeof window !== "undefined" ? window.location.origin : undefined,
       },
       events: {

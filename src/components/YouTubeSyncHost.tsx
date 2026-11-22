@@ -3,10 +3,7 @@ import {
   ExternalLink,
   Maximize2,
   Minimize2,
-  Radio,
   Tv,
-  Volume2,
-  VolumeX,
   X,
 } from "lucide-react";
 import {
@@ -16,6 +13,14 @@ import {
 } from "../audio/youTubeAudioEngine";
 import { openExternalUrl } from "../core/fileBridge";
 import { useFretStack } from "../state/useFretStackStore";
+
+type PlayerSizeMode = "compact" | "standard" | "theater";
+
+const SIZE_PRESETS: Record<PlayerSizeMode, { width: number; height: number; label: string }> = {
+  compact: { width: 320, height: 180, label: "Compact (320×180)" },
+  standard: { width: 420, height: 236, label: "Standard (420×236)" },
+  theater: { width: 540, height: 304, label: "Theater (540×304)" },
+};
 
 export const YouTubeSyncHost: React.FC = () => {
   const { song } = useFretStack();
@@ -31,7 +36,7 @@ export const YouTubeSyncHost: React.FC = () => {
     isEnded: false,
   });
 
-  const [isMinimized, setIsMinimized] = useState<boolean>(false);
+  const [sizeMode, setSizeMode] = useState<PlayerSizeMode>("compact");
   const [isDismissed, setIsDismissed] = useState<boolean>(false);
 
   const isYouTubeSource =
@@ -51,7 +56,7 @@ export const YouTubeSyncHost: React.FC = () => {
     };
   }, []);
 
-  // When song or webUrl changes, un-dismiss the player and ensure video is loaded
+  // When song or webUrl changes, un-dismiss and load video
   useEffect(() => {
     if (isYouTubeSource && videoId) {
       setIsDismissed(false);
@@ -59,48 +64,72 @@ export const YouTubeSyncHost: React.FC = () => {
     }
   }, [isYouTubeSource, videoId, song.id]);
 
-  const isVisible = isYouTubeSource && Boolean(videoId) && !isDismissed && !isMinimized;
-  const isPillVisible = isYouTubeSource && Boolean(videoId) && (isMinimized || isDismissed);
+  // When playback starts from the runner engine, ensure the player is visible
+  useEffect(() => {
+    if (engineState.isPlaying && isDismissed) {
+      setIsDismissed(false);
+    }
+  }, [engineState.isPlaying]);
+
+  // If user dismisses the player, pause playback to comply with YouTube ToS
+  // (audiovisual content must not play audio when video is hidden/dismissed)
+  const handleClose = () => {
+    sharedYouTubeEngine.pause();
+    setIsDismissed(true);
+  };
+
+  const handleCycleSize = () => {
+    setSizeMode((prev) => {
+      if (prev === "compact") return "standard";
+      if (prev === "standard") return "theater";
+      return "compact";
+    });
+  };
+
+  const isVisible = isYouTubeSource && Boolean(videoId) && !isDismissed;
+  const currentDim = SIZE_PRESETS[sizeMode];
 
   return (
     <>
-      {/* Persistent DOM element hosting YouTube iframe so it NEVER gets unmounted */}
+      {/* 
+        Persistent DOM container hosting YouTube iframe.
+        In compliance with YouTube API Terms of Service & Developer Policies:
+        1. Audio is never separated from video (closing/hiding pauses playback).
+        2. Iframe viewport meets standard minimum dimensions (320x180 16:9).
+        3. Header and controls are placed outside and above the iframe to ensure zero obscuring of video, title, or ads.
+      */}
       <div
         id="fret-tab-runner-yt-player-container"
         style={{
           position: "fixed",
           bottom: isVisible ? 24 : -9999,
           right: isVisible ? 24 : -9999,
-          width: isVisible ? 320 : 1,
-          height: isVisible ? 180 : 1,
+          width: currentDim.width,
           opacity: isVisible ? 1 : 0.001,
           pointerEvents: isVisible ? "auto" : "none",
           zIndex: 9999,
           borderRadius: 12,
           overflow: "hidden",
           boxShadow: isVisible
-            ? "0 10px 30px rgba(0,0,0,0.6), 0 0 15px rgba(0,229,255,0.3)"
+            ? "0 10px 30px rgba(0,0,0,0.7), 0 0 20px rgba(0,229,255,0.25)"
             : "none",
           border: isVisible ? "1px solid rgba(0,229,255,0.4)" : "none",
-          background: "#000",
-          transition: "all 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
+          background: "#0a0e17",
+          display: "flex",
+          flexDirection: "column",
+          transition: "width 0.2s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease",
         }}
       >
-        {/* Top Floating Control Bar */}
+        {/* Dedicated Top Header Bar (Positioned ABOVE the iframe, never overlaying video) */}
         <div
           style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            zIndex: 10,
-            padding: "4px 8px",
-            background:
-              "linear-gradient(to bottom, rgba(10,14,23,0.92) 0%, rgba(10,14,23,0.4) 75%, transparent 100%)",
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            gap: 6,
+            padding: "6px 10px",
+            background: "rgba(10, 14, 23, 0.98)",
+            borderBottom: "1px solid rgba(255, 255, 255, 0.08)",
+            gap: 8,
           }}
         >
           <div
@@ -111,19 +140,22 @@ export const YouTubeSyncHost: React.FC = () => {
               overflow: "hidden",
               textOverflow: "ellipsis",
               whiteSpace: "nowrap",
+              flex: 1,
             }}
           >
-            <Tv size={12} color="#00e5ff" />
+            <Tv size={13} color="#00e5ff" />
             <span
               style={{
-                fontSize: 10,
+                fontSize: 11,
                 fontWeight: 700,
                 color: "#fff",
                 textOverflow: "ellipsis",
                 overflow: "hidden",
+                whiteSpace: "nowrap",
               }}
+              title={song.title || "YouTube Backing Video"}
             >
-              {song.title || "YouTube Backing"}
+              {song.title || "YouTube Backing Video"}
             </span>
           </div>
 
@@ -133,139 +165,109 @@ export const YouTubeSyncHost: React.FC = () => {
                 fontSize: 9,
                 padding: "1px 5px",
                 borderRadius: 4,
+                fontWeight: 600,
                 background: engineState.isPlaying
-                  ? "rgba(0,229,255,0.25)"
-                  : "rgba(255,255,255,0.1)",
+                  ? "rgba(0,229,255,0.2)"
+                  : "rgba(255,255,255,0.08)",
                 color: engineState.isPlaying ? "#00e5ff" : "var(--text-muted)",
               }}
             >
               {engineState.isBuffering
-                ? "Buffering..."
+                ? "Buffering"
                 : engineState.isPlaying
-                ? "Synced"
+                ? "In Sync"
                 : "Paused"}
             </span>
+
+            {/* Resize Toggle */}
             <button
               className="btn"
-              style={{ padding: 2, background: "rgba(0,0,0,0.5)" }}
-              onClick={() => setIsMinimized(true)}
-              title="Minimize to Pill"
+              style={{ padding: 3, background: "rgba(255,255,255,0.06)" }}
+              onClick={handleCycleSize}
+              title={`Resize: ${currentDim.label} - Click to cycle size`}
             >
-              <Minimize2 size={11} />
+              {sizeMode === "theater" ? (
+                <Minimize2 size={11} />
+              ) : (
+                <Maximize2 size={11} />
+              )}
             </button>
+
+            {/* Watch on YouTube Attribution Link */}
+            {song.audioSource.webUrl && (
+              <button
+                className="btn"
+                style={{ padding: 3, background: "rgba(255,255,255,0.06)" }}
+                onClick={() => openExternalUrl(song.audioSource.webUrl || "")}
+                title="Watch on YouTube"
+              >
+                <ExternalLink size={11} />
+              </button>
+            )}
+
+            {/* Close Player (pauses playback and hides) */}
             <button
               className="btn"
-              style={{ padding: 2, background: "rgba(0,0,0,0.5)" }}
-              onClick={() => setIsDismissed(true)}
-              title="Hide Video (Audio Continues)"
+              style={{ padding: 3, background: "rgba(255,255,255,0.06)" }}
+              onClick={handleClose}
+              title="Close YouTube Player (pauses playback)"
             >
               <X size={11} />
             </button>
           </div>
         </div>
 
-        {/* Target container where YT.Player is attached */}
-        <div
-          id="fret-tab-runner-yt-player"
-          style={{ width: "100%", height: "100%" }}
-        />
-
-        {/* Error overlay if embed is restricted */}
-        {engineState.errorCode && (
-          <div
-            style={{
-              position: "absolute",
-              inset: 0,
-              background: "rgba(15, 23, 42, 0.94)",
-              padding: 14,
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              textAlign: "center",
-              gap: 8,
-              zIndex: 20,
-            }}
-          >
-            <span style={{ fontSize: 11, color: "#ff4d4f", fontWeight: 700 }}>
-              Playback Restricted (Code {engineState.errorCode})
-            </span>
-            <p style={{ fontSize: 10, color: "var(--text-secondary)", margin: 0 }}>
-              The video owner has restricted embedding on external sites.
-            </p>
-            <button
-              className="btn btn-neon"
-              style={{ fontSize: 10, padding: "3px 8px" }}
-              onClick={() => openExternalUrl(song.audioSource.webUrl || "")}
-            >
-              <ExternalLink size={10} /> Open on YouTube
-            </button>
-          </div>
-        )}
-      </div>
-
-      {/* Floating Pill when Minimized or Dismissed */}
-      {isPillVisible && (
+        {/* 
+          Target container where YT.Player is attached.
+          Strictly unobscured with exact 16:9 aspect ratio.
+        */}
         <div
           style={{
-            position: "fixed",
-            bottom: 24,
-            right: 24,
-            zIndex: 9999,
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-            padding: "6px 12px",
-            background: "rgba(10, 14, 23, 0.92)",
-            border: "1px solid rgba(0, 229, 255, 0.4)",
-            borderRadius: 20,
-            boxShadow:
-              "0 4px 20px rgba(0,0,0,0.5), 0 0 10px rgba(0,229,255,0.2)",
-            backdropFilter: "blur(8px)",
+            width: currentDim.width,
+            height: currentDim.height,
+            background: "#000",
+            position: "relative",
           }}
         >
-          <Radio
-            size={13}
-            color={engineState.isPlaying ? "#00e5ff" : "var(--text-muted)"}
-            className={engineState.isPlaying ? "animate-pulse" : ""}
+          <div
+            id="fret-tab-runner-yt-player"
+            style={{ width: "100%", height: "100%" }}
           />
-          <div style={{ display: "flex", flexDirection: "column" }}>
-            <span
+
+          {/* Embed Restriction Fallback Notice */}
+          {engineState.errorCode && (
+            <div
               style={{
-                fontSize: 10,
-                fontWeight: 700,
-                color: "#fff",
-                maxWidth: 140,
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                whiteSpace: "nowrap",
+                position: "absolute",
+                inset: 0,
+                background: "rgba(15, 23, 42, 0.95)",
+                padding: 14,
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                textAlign: "center",
+                gap: 8,
+                zIndex: 20,
               }}
             >
-              {song.title || "YouTube Audio"}
-            </span>
-            <span style={{ fontSize: 9, color: "var(--text-muted)" }}>
-              {engineState.isPlaying ? "Playing in Sync" : "Paused"} •{" "}
-              {song.audioSource.isMuted ? (
-                <VolumeX size={9} style={{ display: "inline" }} />
-              ) : (
-                <Volume2 size={9} style={{ display: "inline" }} />
-              )}
-            </span>
-          </div>
-
-          <button
-            className="btn btn-neon"
-            style={{ padding: "3px 6px", fontSize: 10 }}
-            onClick={() => {
-              setIsMinimized(false);
-              setIsDismissed(false);
-            }}
-            title="Expand YouTube Video"
-          >
-            <Maximize2 size={11} />
-          </button>
+              <span style={{ fontSize: 11, color: "#ff4d4f", fontWeight: 700 }}>
+                Embedding Restricted by Video Owner (Code {engineState.errorCode})
+              </span>
+              <p style={{ fontSize: 10, color: "var(--text-secondary)", margin: 0 }}>
+                This video can only be played directly on YouTube.
+              </p>
+              <button
+                className="btn btn-neon"
+                style={{ fontSize: 10, padding: "3px 8px" }}
+                onClick={() => openExternalUrl(song.audioSource.webUrl || "")}
+              >
+                <ExternalLink size={10} /> Watch on YouTube
+              </button>
+            </div>
+          )}
         </div>
-      )}
+      </div>
     </>
   );
 };

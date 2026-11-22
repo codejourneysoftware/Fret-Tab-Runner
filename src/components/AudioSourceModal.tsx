@@ -217,7 +217,7 @@ export const AudioSourceModal: React.FC<AudioSourceModalProps> = ({ onClose }) =
                 >
                   <span style={{ fontSize: 11, color: "var(--text-secondary)" }}>
                     {sharedYouTubeEngine.isReady
-                      ? "● Audio Engine Synced & Ready"
+                      ? "● YouTube Video Synced & Ready"
                       : "Connecting to YouTube..."}
                   </span>
                   <button
@@ -226,7 +226,7 @@ export const AudioSourceModal: React.FC<AudioSourceModalProps> = ({ onClose }) =
                     onClick={toggleTestPlayYt}
                   >
                     {isYtPlaying ? <Pause size={12} /> : <Play size={12} />}
-                    {isYtPlaying ? "Stop Audio" : "Test Play Audio"}
+                    {isYtPlaying ? "Stop Video" : "Test Play Video"}
                   </button>
                 </div>
               )}
